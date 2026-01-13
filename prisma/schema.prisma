@@ -1,0 +1,329 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPERADMIN
+  USER
+}
+
+enum Entitlement {
+  FREE
+  PAID
+  COMPED
+}
+
+enum GoalType {
+  LOSE_FAT
+  GAIN_MUSCLE
+  MAINTAIN
+  RECOMP
+}
+
+enum GoalPace {
+  AGGRESSIVE
+  MODERATE
+  GENTLE
+}
+
+enum ActivityLevel {
+  LOW
+  MODERATE
+  HIGH
+  ATHLETE
+}
+
+enum DietStyle {
+  NORMAL
+  LOW_CARB
+  HIGH_PROTEIN
+  VEGETARIAN
+  VEGAN
+  KETO
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+enum PlanStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum FoodLogSource {
+  SCAN
+  BARCODE
+  MANUAL
+}
+
+model User {
+  id                  String      @id @default(cuid())
+  name                String?
+  email               String?     @unique
+  emailVerified       DateTime?
+  image               String?
+  passwordHash        String?
+  role                Role        @default(USER)
+  entitlement         Entitlement @default(FREE)
+  accessWeeks         Int         @default(1)
+  paidUntil           DateTime?
+  onboardingCompleted Boolean     @default(false)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  accounts            Account[]
+  sessions            Session[]
+  profile             Profile?
+  preferences         Preferences?
+  goal                Goal?
+  planCycles          PlanCycle[]
+  dayChecks           DayCheck[]
+  foodLogDays         FoodLogDay[]
+  foodLogEntries      FoodLogEntry[]
+  checkIns            CheckIn[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  age       Int
+  heightCm  Float
+  weightKg  Float
+  country   String
+  sex       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Goal {
+  id                   String        @id @default(cuid())
+  userId               String        @unique
+  goalType             GoalType
+  pace                 GoalPace
+  activityLevel        ActivityLevel
+  trainingType         String?
+  trainingDaysPerWeek  Int?
+  trainingDurationMin  Int?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Preferences {
+  id                    String     @id @default(cuid())
+  userId                String     @unique
+  mealsPerDay           Int
+  mealTimes             Json?
+  style                 DietStyle
+  cuisinePreference     String?
+  dislikedFoods         String[]
+  allergies             String[]
+  intolerances          String[]
+  culturalRestrictions  String[]
+  budgetLevel           String?
+  cookingTimeLevel      String?
+  cookingEquipment      String?
+  flexibility           String?
+  snacks                Boolean     @default(true)
+  repeatMeals           Boolean     @default(false)
+  freeDay               Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PlanCycle {
+  id        String      @id @default(cuid())
+  userId    String
+  startDate DateTime
+  endDate   DateTime
+  status    PlanStatus @default(ACTIVE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weeks PlanWeek[]
+}
+
+model PlanWeek {
+  id        String     @id @default(cuid())
+  cycleId   String
+  weekIndex Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  cycle        PlanCycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  days         PlanDay[]
+  groceryItems GroceryItem[]
+
+  @@unique([cycleId, weekIndex])
+}
+
+model PlanDay {
+  id        String   @id @default(cuid())
+  weekId    String
+  dayIndex  Int
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  week  PlanWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  meals Meal[]
+
+  @@unique([weekId, dayIndex])
+}
+
+model Meal {
+  id           String   @id @default(cuid())
+  dayId        String
+  mealType     MealType
+  recipeId     String?
+  calories     Int
+  proteinGrams Float
+  carbsGrams   Float
+  fatGrams     Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  day    PlanDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  recipe Recipe? @relation(fields: [recipeId], references: [id])
+}
+
+model Recipe {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  tags           String[]
+  calories       Int
+  proteinGrams   Float
+  carbsGrams     Float
+  fatGrams       Float
+  defaultServing String
+  ingredients    Json
+  instructions   Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  meals Meal[]
+}
+
+model GroceryItem {
+  id        String   @id @default(cuid())
+  weekId    String
+  name      String
+  quantity  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  week PlanWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
+}
+
+model DayCheck {
+  id             String   @id @default(cuid())
+  userId         String
+  date           DateTime
+  isCompleted    Boolean  @default(false)
+  mealsCompleted Json
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  weightKg  Float?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FoodLogDay {
+  id        String         @id @default(cuid())
+  userId    String
+  date      DateTime
+  totals    Json
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries FoodLogEntry[]
+
+  @@unique([userId, date])
+}
+
+model FoodLogEntry {
+  id            String        @id @default(cuid())
+  userId        String
+  foodLogDayId  String?
+  date          DateTime
+  mealType      MealType
+  source        FoodLogSource
+  items         Json
+  totals        Json
+  barcode       String?
+  name          String?
+  servingText   String?
+  quantity      Float?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodLogDay FoodLogDay? @relation(fields: [foodLogDayId], references: [id], onDelete: Cascade)
+}
