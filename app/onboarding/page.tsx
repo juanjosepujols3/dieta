@@ -135,15 +135,15 @@ export default function OnboardingPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Edad</Label>
-                  <Input type="number" {...form.register("age")} />
+                  <Input type="number" {...form.register("age", { valueAsNumber: true })} />
                 </div>
                 <div className="space-y-2">
                   <Label>Altura (cm)</Label>
-                  <Input type="number" {...form.register("heightCm")} />
+                  <Input type="number" {...form.register("heightCm", { valueAsNumber: true })} />
                 </div>
                 <div className="space-y-2">
                   <Label>Peso (kg)</Label>
-                  <Input type="number" {...form.register("weightKg")} />
+                  <Input type="number" {...form.register("weightKg", { valueAsNumber: true })} />
                 </div>
                 <div className="space-y-2">
                   <Label>Pais</Label>
@@ -228,11 +228,21 @@ export default function OnboardingPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Dias por semana</Label>
-                  <Input type="number" {...form.register("trainingDaysPerWeek")} />
+                  <Input
+                    type="number"
+                    {...form.register("trainingDaysPerWeek", {
+                      setValueAs: (value) => (value === "" ? undefined : Number(value)),
+                    })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Duracion (min)</Label>
-                  <Input type="number" {...form.register("trainingDurationMin")} />
+                  <Input
+                    type="number"
+                    {...form.register("trainingDurationMin", {
+                      setValueAs: (value) => (value === "" ? undefined : Number(value)),
+                    })}
+                  />
                 </div>
               </div>
             )}
@@ -241,7 +251,7 @@ export default function OnboardingPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Comidas por dia</Label>
-                  <Input type="number" {...form.register("mealsPerDay")} />
+                  <Input type="number" {...form.register("mealsPerDay", { valueAsNumber: true })} />
                 </div>
                 <div className="space-y-2">
                   <Label>Horarios preferidos</Label>
