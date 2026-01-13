@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { AuthForm } from "@/app/auth/login/auth-form";
 import { Card } from "@/components/ui/card";
@@ -21,11 +22,13 @@ export default function LoginPage() {
             </p>
           </div>
           <div className="mt-8">
-            <AuthForm
-              enableGoogle={Boolean(
-                process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-              )}
-            />
+            <Suspense fallback={<div className="text-sm text-muted-foreground">Cargando...</div>}>
+              <AuthForm
+                enableGoogle={Boolean(
+                  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+                )}
+              />
+            </Suspense>
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
             Al continuar aceptas la politica de privacidad. <Link className="text-emerald-600" href="/">Volver al inicio</Link>
