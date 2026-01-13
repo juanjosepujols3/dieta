@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { completeOnboarding } from "./actions";
 import { onboardingSchema, type OnboardingValues } from "./schema";
 
-const steps = [
+const steps: Array<{ title: string; fields: Array<keyof OnboardingValues> }> = [
   {
     title: "Basicos",
     fields: ["age", "heightCm", "weightKg", "country", "sex"],
@@ -49,7 +49,7 @@ const steps = [
       "freeDay",
     ],
   },
-] as const;
+];
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -92,7 +92,7 @@ export default function OnboardingPage() {
   const isLastStep = currentStep === steps.length - 1;
 
   const handleNext = async () => {
-    const valid = await form.trigger(step.fields as (keyof OnboardingValues)[]);
+    const valid = await form.trigger(step.fields);
     if (!valid) return;
     setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
