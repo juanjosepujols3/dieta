@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { authOptions } from "@/lib/auth";
 import { getActivePlanCycle } from "@/lib/plan-queries";
 import { prisma } from "@/lib/prisma";
+import { format } from "date-fns";
 
 import { generatePlanAction } from "../actions";
 
@@ -43,7 +44,13 @@ export default async function PlanPage() {
     weeks: plan.weeks.map((week) =>
       week.weekIndex > accessWeeks
         ? { ...week, days: [], groceryItems: [] }
-        : week
+        : {
+            ...week,
+            days: week.days.map((day) => ({
+              ...day,
+              dateLabel: format(new Date(day.date), "MMM dd"),
+            })),
+          }
     ),
   };
 

@@ -1,7 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
-
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,7 +31,7 @@ type PlanMeal = {
 type PlanDay = {
   id: string;
   dayIndex: number;
-  date: string | Date;
+  dateLabel: string;
   meals: PlanMeal[];
 };
 
@@ -98,9 +96,7 @@ export function PlanTabs({
                       <Card key={day.id} className="border-border/60 bg-muted/30 p-4">
                         <div className="flex items-center justify-between">
                           <p className="font-semibold">Dia {day.dayIndex}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(day.date), "MMM dd")}
-                          </p>
+                          <p className="text-xs text-muted-foreground">{day.dateLabel}</p>
                         </div>
                         <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
                           {[...day.meals]
