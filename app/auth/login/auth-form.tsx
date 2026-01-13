@@ -11,15 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const registerSchema = z.object({
-  name: z.string().min(2, "Nombre requerido"),
+const authSchema = z.object({
+  name: z.string().min(2, "Nombre requerido").optional(),
   email: z.string().email("Email invalido"),
   password: z.string().min(6, "Minimo 6 caracteres"),
 });
 
-type RegisterValues = z.infer<typeof registerSchema>;
-
-const loginSchema = registerSchema.omit({ name: true });
+type AuthValues = z.infer<typeof authSchema>;
 
 export function AuthForm({ enableGoogle = true }: { enableGoogle?: boolean }) {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -29,8 +27,8 @@ export function AuthForm({ enableGoogle = true }: { enableGoogle?: boolean }) {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/app";
 
-  const form = useForm<RegisterValues>({
-    resolver: zodResolver(mode === "login" ? loginSchema : registerSchema),
+  const form = useForm<AuthValues>({
+    resolver: zodResolver(authSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -38,10 +36,14 @@ export function AuthForm({ enableGoogle = true }: { enableGoogle?: boolean }) {
     },
   });
 
-  const onSubmit = (values: RegisterValues) => {
+  const onSubmit = (values: AuthValues) => {
     setError(null);
     startTransition(async () => {
       if (mode === "register") {
+        if (!values.name?.trim()) {
+          form.setError("name", { type: "manual", message: "Nombre requerido" });
+          return;
+        }
         const response = await fetch("/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -98,11 +100,17 @@ export function AuthForm({ enableGoogle = true }: { enableGoogle?: boolean }) {
           <div className="space-y-2">
             <Label htmlFor="name">Nombre</Label>
             <Input id="name" placeholder="Tu nombre" {...form.register("name")} />
+            {form.formState.errors.name?.message && (
+              <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>
+            )}
           </div>
         )}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" placeholder="tu@email.com" {...form.register("email")} />
+          {form.formState.errors.email?.message && (
+            <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
@@ -112,6 +120,9 @@ export function AuthForm({ enableGoogle = true }: { enableGoogle?: boolean }) {
             placeholder="******"
             {...form.register("password")}
           />
+          {form.formState.errors.password?.message && (
+            <p className="text-xs text-red-500">{form.formState.errors.password.message}</p>
+          )}
         </div>
         {error && <p className="text-xs text-red-500">{error}</p>}
         <Button type="submit" className="w-full rounded-full" disabled={isPending}>
