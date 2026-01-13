@@ -23,6 +23,13 @@ export default async function DayPage() {
     },
   });
 
+  const mealsCompletedRaw = existing?.mealsCompleted;
+  const mealsCompleted =
+    typeof mealsCompletedRaw === "object" && mealsCompletedRaw && !Array.isArray(mealsCompletedRaw)
+      ? (mealsCompletedRaw as Record<string, unknown>)
+      : {};
+  const mealValue = (key: string) => Boolean(mealsCompleted[key]);
+
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
 
@@ -69,10 +76,10 @@ export default async function DayPage() {
     date: today.toISOString(),
     isCompleted: existing?.isCompleted ?? false,
     mealsCompleted: {
-      BREAKFAST: Boolean(existing?.mealsCompleted?.["BREAKFAST"]),
-      LUNCH: Boolean(existing?.mealsCompleted?.["LUNCH"]),
-      DINNER: Boolean(existing?.mealsCompleted?.["DINNER"]),
-      SNACK: Boolean(existing?.mealsCompleted?.["SNACK"]),
+      BREAKFAST: mealValue("BREAKFAST"),
+      LUNCH: mealValue("LUNCH"),
+      DINNER: mealValue("DINNER"),
+      SNACK: mealValue("SNACK"),
     },
     notes: existing?.notes ?? "",
   };
