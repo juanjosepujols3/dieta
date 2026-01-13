@@ -31,9 +31,9 @@ export const onboardingSchema = z.object({
   cookingTimeLevel: z.string().optional(),
   cookingEquipment: z.string().optional(),
   flexibility: z.string().optional(),
-  snacks: z.boolean().default(true),
-  repeatMeals: z.boolean().default(false),
-  freeDay: z.boolean().default(false),
+  snacks: z.boolean(),
+  repeatMeals: z.boolean(),
+  freeDay: z.boolean(),
 });
 
 export type OnboardingValues = z.infer<typeof onboardingSchema>;
